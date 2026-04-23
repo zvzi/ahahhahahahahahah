@@ -1,6 +1,6 @@
--- === REGULAR EXECUTOR GROUP DETECTOR ===
+
 -- Groups: 769816120 + 40382415
--- Uses proper Roblox GUI + Sound
+
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
