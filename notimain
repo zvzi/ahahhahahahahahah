@@ -1,4 +1,7 @@
--- notification system made by @jurylol on discord
+-- notification system made by @jurylol on discord id is 635525939803062305
+-- mod dtc made by f3vian id is 1332527369411629157
+-- i used claude ai to merge these and make it valid for vfs mod dtc on some skid shit yup yup yup
+
 local notify = {}
 local activeNotifications = {}
 local currID = 0
