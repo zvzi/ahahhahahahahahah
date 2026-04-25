@@ -9,7 +9,7 @@ local targetUserIds = {
     7004319556, -- lepfhty
     8149539073, -- lazylemur
     1617828795, -- dede 
-    
+    3860151481, --philo
 }
 
 local notifiedPlayers = {}
