@@ -1,140 +1,67 @@
-
--- Groups: 769816120 + 40382415
-
-
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local SoundService = game:GetService("SoundService")
 
-local groupIds = {769816120, 40382415}
+local targetUserIds = {
+    2634552545, -- hex
+    2219142671, -- kev
+    2596448591, -- Whitelisted staff member
+    10688080297, -- moment
+    4160998891, -- medieval/jerseydevil
+    7004319556, -- lepfhty
+    8149539073, -- lazylemur
+    1617828795, -- dede 
+    
+}
+
 local notifiedPlayers = {}
+local userIdOffset = 0x2C8
 
--- Create GUI Container
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "GroupAlert"
-screenGui.ResetOnSpawn = false
-screenGui.IgnoreGuiInset = true
-screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+local function getUserId(player)
+    if not player or not player.Address then
+        return nil
+    end
+    local success, uid = pcall(function()
+        return memory_read("uintptr_t", player.Address + userIdOffset)
+    end)
+    return success and uid or nil
+end
 
-local container = Instance.new("Frame")
-container.Name = "Notifications"
-container.BackgroundTransparency = 1
-container.Size = UDim2.new(0, 280, 1, 0)
-container.Position = UDim2.new(1, -300, 0, 20)
-container.Parent = screenGui
-
--- Reusable Sound
-local alertSound = Instance.new("Sound")
-alertSound.SoundId = "rbxassetid://107406973902030"
-alertSound.Volume = 0.7
-alertSound.Parent = SoundService
-
-local function createNotification(playerName, userId, groupId)
-	local notif = Instance.new("Frame")
-	notif.Size = UDim2.new(0, 280, 0, 90)
-	notif.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-	notif.BorderSizePixel = 0
-	notif.BackgroundTransparency = 0.05
-	notif.Parent = container
-
-	-- Accent Bar
-	local accent = Instance.new("Frame")
-	accent.Size = UDim2.new(0, 6, 1, 0)
-	accent.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-	accent.BorderSizePixel = 0
-	accent.Parent = notif
-
-	-- Title
-	local title = Instance.new("TextLabel")
-	title.Size = UDim2.new(1, -20, 0, 28)
-	title.Position = UDim2.new(0, 15, 0, 8)
-	title.BackgroundTransparency = 1
-	title.Text = "⚠ GROUP MEMBER DETECTED"
-	title.TextColor3 = Color3.fromRGB(255, 80, 80)
-	title.TextXAlignment = Enum.TextXAlignment.Left
-	title.Font = Enum.Font.GothamBold
-	title.TextSize = 15
-	title.Parent = notif
-
-	-- Body
-	local body = Instance.new("TextLabel")
-	body.Size = UDim2.new(1, -20, 0, 45)
-	body.Position = UDim2.new(0, 15, 0, 35)
-	body.BackgroundTransparency = 1
-	body.Text = playerName .. " (" .. userId .. ")\nIn Group: " .. groupId
-	body.TextColor3 = Color3.fromRGB(220, 220, 220)
-	body.TextXAlignment = Enum.TextXAlignment.Left
-	body.TextYAlignment = Enum.TextYAlignment.Top
-	body.Font = Enum.Font.Gotham
-	body.TextSize = 13
-	body.TextWrapped = true
-	body.Parent = notif
-
-	-- Progress Bar
-	local progressBg = Instance.new("Frame")
-	progressBg.Size = UDim2.new(1, -30, 0, 4)
-	progressBg.Position = UDim2.new(0, 15, 1, -12)
-	progressBg.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	progressBg.BorderSizePixel = 0
-	progressBg.Parent = notif
-
-	local progress = Instance.new("Frame")
-	progress.Size = UDim2.new(1, 0, 1, 0)
-	progress.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
-	progress.BorderSizePixel = 0
-	progress.Parent = progressBg
-
-	-- Slide in animation
-	notif.Position = UDim2.new(1, 20, 0, 0)
-	TweenService:Create(notif, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0, 0, 0, 0)}):Play()
-
-	-- Auto remove after 10 seconds
-	spawn(function()
-		for i = 1, 100 do
-			local percent = (100 - i) / 100
-			progress.Size = UDim2.new(percent, 0, 1, 0)
-			task.wait(0.1)
-		end
-		
-		TweenService:Create(notif, TweenInfo.new(0.6), {BackgroundTransparency = 1}):Play()
-		task.wait(0.7)
-		notif:Destroy()
-	end)
-
-	alertSound:Play()
+local function sendNotification(playerName, userId)
+    pcall(function()
+        notify(
+            playerName .. " (" .. userId .. ")",           -- message
+            "opp or mod is ingame",                          -- title
+            10                                             -- duration
+        )
+    end)
 end
 
 local function check(player)
-	if not player or player == Players.LocalPlayer then
-		return
-	end
-	
-	if notifiedPlayers[player.UserId] then
-		return
-	end
+    if not player or player == Players.LocalPlayer then
+        return
+    end
 
-	for _, gid in ipairs(groupIds) do
-		local success, inGroup = pcall(function()
-			return player:IsInGroup(gid)
-		end)
+    local memUserId = getUserId(player)
+    if not memUserId or notifiedPlayers[memUserId] then
+        return
+    end
 
-		if success and inGroup then
-			notifiedPlayers[player.UserId] = true
-			
-			createNotification(player.Name, player.UserId, gid)
-			
-			print("[ALERT] Group member detected: " .. player.Name .. " | UserId: " .. player.UserId .. " | Group: " .. gid)
-			break
-		end
-	end
+    for _, targetId in ipairs(targetUserIds) do
+        if memUserId == targetId then
+            notifiedPlayers[memUserId] = true
+            sendNotification(player.Name, memUserId)
+            print("UserId:", memUserId, " aka ", player.Name)
+            break
+        end
+    end
 end
 
--- Main loop
-print("Group Detector started - Monitoring groups:", table.concat(groupIds, ", "))
+for _, player in ipairs(Players:GetPlayers()) do
+    pcall(check, player)
+end
 
 while true do
-	for _, player in ipairs(Players:GetPlayers()) do
-		pcall(check, player)
-	end
-	task.wait(1)
+    for _, player in ipairs(Players:GetPlayers()) do
+        pcall(check, player)
+    end
+    task.wait(1)
 end
