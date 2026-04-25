@@ -3,7 +3,6 @@ local Players = game:GetService("Players")
 -- ==================== SETTINGS ====================
 local targetUserIds = {
     2634552545, -- hex
-    2219142671, -- kev
     2596448591, -- Whitelisted staff member
     7004319556, -- lepfhty
     8149539073, -- lazylemur (POSSIBLY WHITELISTED)	
