@@ -1,15 +1,14 @@
 local Players = game:GetService("Players")
 
+-- ==================== SETTINGS ====================
 local targetUserIds = {
     2634552545, -- hex
     2219142671, -- kev
     2596448591, -- Whitelisted staff member
-    10688080297, -- moment
-    4160998891, -- medieval/jersey devil
     7004319556, -- lepfhty
-    8149539073, -- lazylemur
+    8149539073, -- lazylemur (POSSIBLY WHITELISTED)	
     1617828795, -- dede 
-    3860151481, -- philo
+    3860151481, -- philo (POSSIBLY WHITELISTED)
 }
 
 local groupMonitor = {}
@@ -20,7 +19,11 @@ groupMonitor.notifiedThisSession = {}
 groupMonitor.GROUPS = {
     {id = 769816120, name = "new staff grp apr 2026"},
     {id = 40382415,  name = "old staff grp prob not needed"},
+    {id = 338509474, name = "random star group prob needed"},
+
+
 }
+
 function groupMonitor:fetchGroupMembers(group, cursor)
     local url = "https://groups.roblox.com/v1/groups/" .. group.id .. "/users?limit=100&sortOrder=Asc"
     if cursor then
@@ -48,6 +51,7 @@ function groupMonitor:fetchGroupMembers(group, cursor)
         end
     end
 end
+
 local function sendNotification(plr, reason)
     local username = plr.Name
     local userId = plr.UserId or "?"
@@ -57,8 +61,9 @@ local function sendNotification(plr, reason)
         "⚠ staff detected",
         10
     )
+
     print("\n⚠ staff detected ⚠\nPlayer: " .. username .. "\nUserId: " .. userId .. "\nReason: " .. reason .. "\n")
-    warn("staff detected " .. username)
+    warn("staff detected - " .. username)
 end
 
 local function isTargetUser(player)
@@ -70,9 +75,8 @@ local function isTargetUser(player)
             return true, "whitelisted player"
         end
     end
-
     if groupMonitor.trackedUsers[player.Name:lower()] then
-        return true, "group member"
+        return true, "in roblox group"
     end
 
     return false
